@@ -1,5 +1,95 @@
 # batchOptimize
 
+## 备忘录
+
+### Markdown介绍
+
+该Readme文件由Markdown格式编写，这种语言的设计目标是可读性和易用性。其核心理念是，一份 Markdown 格式的文档应该能够直接以纯文本的形式阅读，而无需查看其渲染后的效果。
+
+Markdown主要语法规则：https://www.jianshu.com/p/191d1e21f7ed/
+
+在VSCode中直接点开Readme文件编辑即可。
+
+### FastAPI框架下如何返回PIL格式的图片？
+
+如果你希望使用FastAPI返回Python Imaging Library (PIL)格式的图片，你需要先将PIL Image对象转化为一个字节流（例如，将其保存为JPEG或PNG格式的数据），然后你可以使用`Response`对象将这个字节流返回给客户端。
+
+```python
+from fastapi import FastAPI
+from fastapi.responses import Response
+from PIL import Image
+import io
+
+app = FastAPI()
+
+@app.get("/image/")
+def read_image():
+    image = Image.new('RGBA', size=(50, 50), color=(155, 0, 0))
+    byte_arr = io.BytesIO()
+    image.save(byte_arr, format='PNG')
+    byte_arr = byte_arr.getvalue()
+    return Response(content=byte_arr, media_type='image/png')
+
+```
+
+这个示例创建了一个新的PIL Image对象，并将其保存为PNG格式的数据到一个`BytesIO`对象中。然后这个`BytesIO`对象被转化为字节，并用作FastAPI `Response`对象的内容。返回的媒体类型设置为'image/png'，以通知客户端响应内容的格式。
+
+这个示例中的图像是红色的50x50像素大小的图片。你可以根据你的需求修改此示例，比如使用已经存在的PIL Image对象。
+
+### 如何规范使用git commit
+
+在团队进行 Git 合作开发项目时，规定 Git commit 的时机是非常重要的，这有助于维护代码的清晰性和可读性，同时也能避免出现冲突。以下是一些常见的实践和建议：
+
+1. **分阶段提交：** 一般来说，每次完成一项功能或修复一个 bug 时，就应该进行一次 commit。避免长时间不提交或多个功能混在一起提交，这样可以使每个 commit 都有明确的目标，同时也方便代码审查和出现问题时回滚。
+2. **单一职责原则：** 每一个 commit 都应该只做一件事情。如果一个 commit 中包含多个改动（例如修复了一个 bug 并添加了一个新功能），这会使得版本历史难以理解，也不利于后续的代码审查和问题追踪。
+3. **编写清晰的 commit 信息：** 提交时，编写一个清晰明了的 commit 信息是非常重要的。这个信息应该准确反映这个 commit 所做的改动。使用 imperative mood（命令语气）的开头动词，例如 "Add"、"Fix"、"Change"、"Remove" 等，可以让 commit 信息更加规范。
+4. **测试前提交：** 在进行单元测试或集成测试之前，进行一次 commit 可以为可能出现的问题提供一个回滚点。
+5. **合并提交：** 如果一系列的小改动都是为了完成一个大的功能，可以使用 git rebase 或 git merge --squash 来将这些改动合并为一个 commit。这样可以保持版本历史的整洁，但也要注意这可能会丢失一些中间的开发历史。
+6. **频繁提交，定期推送：** 鼓励开发者频繁地进行 commit，但不需要每次 commit 都进行 push。可以在一天的工作结束时，或者完成了一项重要的工作时，将本地的改动 push 到远程仓库。
+
+以上的建议可能需要根据你的团队具体情况进行调整。一些团队可能会有自己的规范，例如使用特定的 commit 信息格式，或者要求每个 commit 都必须通过 CI 测试。总的来说，重要的是确保每个 commit 都是有意义的，可以独立理解，且能准确反映出改动的内容。
+
+### .gitignore的使用方法
+
+`.gitignore` 是一个文本文件，用于告诉 Git 哪些文件或者文件夹不需要添加到版本控制中。这可以帮助你排除某些不需要跟踪的文件，比如编译后的二进制文件、日志文件、用户设置等。
+
+以下是 `.gitignore` 的使用方法：
+
+1. **创建 .gitignore 文件：** 在你的 Git 项目根目录下创建一个名为 `.gitignore` 的文件。在这个文件中，你可以列出所有你希望 Git 忽略的文件和文件夹。
+
+2. **指定忽略的文件或文件夹：** 在 `.gitignore` 文件中，每一行都代表一个忽略的模式。例如：
+
+   ```bash
+   # 忽略所有的 .a 文件
+   *.a
+   
+   # 但跟踪所有的 lib.a，即使你在前面忽略了 .a 文件
+   !lib.a
+   
+   # 只忽略当前目录下的 TODO 文件，不忽略 subdir/TODO
+   /TODO
+   
+   # 忽略所有在 build/ 目录下的文件
+   build/
+   
+   # 忽略 doc/notes.txt，但不忽略 doc/server/arch.txt
+   doc/*.txt
+   
+   # 忽略所有的 .pdf 文件在 doc/ 目录下的和子目录
+   doc/**/*.pdf
+   
+   ```
+
+3. ​	**特殊字符：** `.gitignore` 文件支持使用一些特殊字符，如下所示：
+
+   - `*` 匹配任意数量的任意字符
+   - `?` 匹配任意单个字符
+   - `**` 匹配任意数量的任意目录，当它跟在 / 后面时
+   - `/` 表示目录
+   - `#` 表示注释
+   - `!` 表示否定，即不忽略匹配该模式的文件或目录
+
+注意：`.gitignore` 文件只能影响那些还没有被 Git 追踪的文件。如果你在添加 `.gitignore` 文件之前就已经把文件添加到版本控制中，那么这个文件的改动依然会被 Git 追踪。要解决这个问题，你需要先用 `git rm --cached` 命令把文件从版本控制中移除。
 
 ## Serverless Function Cost
 
@@ -19,7 +109,7 @@ $$
 
 ![截屏2023-05-24 21.41.01](README.assets/%E6%88%AA%E5%B1%8F2023-05-24%2021.41.01.png)
 
-如果实例在一段时间内（一般为3~5分钟）不处理请求，会自动销毁。首次发起调用时，需要等待实例冷启动。如果预热（Keep alive）的话GPU$(P_{GPU})$和CPU$P_{CPU}$分别为活跃时的$10\%$，内存单价$P_{Mem}$则不变。
+如果实例在一段时间内（一般为3~5分钟）不处理请求，会自动销毁。首次发起调用时，需要等待实例冷启动。如果预热（Keep alive）的话GPU$(P_{GPU})$和CPU ($P_{CPU})$分别为活跃时的$10\%$，内存单价$P_{Mem}$则不变。
 
 ![fc-billing](README.assets/p558376.png)
 
